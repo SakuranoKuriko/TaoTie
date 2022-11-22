@@ -16,6 +16,7 @@ namespace TaoTie
                 
                 ManagerProvider.GetManager<ConfigManager>();
                 ManagerProvider.GetManager<ResourcesManager>();
+                ManagerProvider.GetManager<ExcelManager>();
                 ManagerProvider.GetManager<GameObjectPoolManager>();
                 ManagerProvider.GetManager<ImageLoaderManager>();
                 ManagerProvider.GetManager<MaterialManager>();
