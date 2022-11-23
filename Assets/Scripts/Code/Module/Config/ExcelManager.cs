@@ -53,36 +53,39 @@ public class ExcelManager
     /// <summary>导入时使用的各种路径</summary>
     public static class Paths
     {
-        /// <summary>Luban主程序路径</summary>
-        public static readonly string Luban = $"{Application.dataPath}/../Tools/Luban/Luban.ClientServer/Luban.ClientServer.dll";
-        /// <summary>Luban 自定义模板搜索路径</summary>
-        public static readonly string CustomTemplate = $"{Application.dataPath}/../Tools/Luban/CustomTemplate";
-        /// <summary>数据表格存放的根路径</summary>
-        public static readonly string DataRoot = $"{Application.dataPath}/../Excel";
-        /// <summary>代码生成路径</summary>
-        public static readonly string Code = $"{Application.dataPath}/Scripts/Code/Module/Generate/Excel";
-        /// <summary>数据生成路径</summary>
-        public static readonly string Data = $"{Application.dataPath}/AssetsPackage/Excel";
-        /// <summary>临时文件路径</summary>
-        public static readonly string TempDir = $"{Application.dataPath}/../Temp/Luban";
-        /// <summary>导入日志路径+文件名</summary>
-        public static readonly string ImportLog = $"{TempDir}/Luban_ImportLog.log";
-        /// <summary>导入定义文件路径</summary>
-        public static readonly string DefineFile = $"{TempDir}/Luban_Define_Root.xml";
-        /// <summary>Table类表存放的路径</summary>
-        public static readonly string Tables = $"{DataRoot}/{nameof(Tables)}";
-        /// <summary>Enum类表存放的路径</summary>
-        public static readonly string Enums = $"{DataRoot}/{nameof(Enums)}";
-        /// <summary>Bean类表存放的路径</summary>
-        public static readonly string Beans = $"{DataRoot}/{nameof(Beans)}";
-        /// <summary>指令转储文件</summary>
-        public static readonly string GenerateBatFile = $"{TempDir}/Luban_generate.bat";
         private static readonly Regex RemovalRedundantSeparatorsRegex = new Regex(@"[\\/]+", RegexOptions.Compiled);
-        public static readonly string DataPathPrefix = GetSubpaths(RemovalRedundantSeparatorsRegex.Replace(MakeRelativePath(new Uri($"{Application.dataPath}/"), Data), "/"));
+        public static string GetAbsolutePath(string path) => RemovalRedundantSeparatorsRegex.Replace(new Uri(path).AbsolutePath, "/");
+        public static readonly string ProjectRoot = GetAbsolutePath($"{Application.dataPath}/..");
+        /// <summary>Luban主程序路径</summary>
+        public static readonly string Luban = GetAbsolutePath($"{ProjectRoot}/Tools/Luban/Luban.ClientServer/Luban.ClientServer.dll");
+        /// <summary>Luban 自定义模板搜索路径</summary>
+        public static readonly string CustomTemplate = GetAbsolutePath($"{ProjectRoot}/Tools/Luban/CustomTemplate");
+        /// <summary>数据表格存放的根路径</summary>
+        public static readonly string DataRoot = GetAbsolutePath($"{ProjectRoot}/Excel");
+        /// <summary>代码生成路径</summary>
+        public static readonly string Code = GetAbsolutePath($"{Application.dataPath}/Scripts/Code/Module/Generate/Excel");
+        /// <summary>数据生成路径</summary>
+        public static readonly string Data = GetAbsolutePath($"{Application.dataPath}/AssetsPackage/Excel");
+        /// <summary>临时文件路径</summary>
+        public static readonly string TempDir = GetAbsolutePath($"{ProjectRoot}/Temp/Luban");
+        /// <summary>导入日志路径+文件名</summary>
+        public static readonly string ImportLog = GetAbsolutePath($"{TempDir}/Luban_ImportLog.log");
+        /// <summary>导入定义文件路径</summary>
+        public static readonly string DefineFile = GetAbsolutePath($"{TempDir}/Luban_Define_Root.xml");
+        /// <summary>Table类表存放的路径</summary>
+        public static readonly string Tables = GetAbsolutePath($"{DataRoot}/{nameof(Tables)}");
+        /// <summary>Enum类表存放的路径</summary>
+        public static readonly string Enums = GetAbsolutePath($"{DataRoot}/{nameof(Enums)}");
+        /// <summary>Bean类表存放的路径</summary>
+        public static readonly string Beans = GetAbsolutePath($"{DataRoot}/{nameof(Beans)}");
+        /// <summary>指令转储文件</summary>
+        public static readonly string GenerateBatFile = GetAbsolutePath($"{TempDir}/Luban_generate.bat");
+        public static readonly string DataPathPrefix = GetSubpaths(RemovalRedundantSeparatorsRegex.Replace(MakeRelativePath($"{Application.dataPath}/", Data), "/"));
         public static string GetSubpaths(string path) => path.Contains('/') ? path.Substring(path.IndexOf('/') + 1) : path;
     }
 
     public static string MakeRelativePath(Uri src, string target) => Uri.UnescapeDataString(src.MakeRelativeUri(new Uri(target)).ToString());
+    public static string MakeRelativePath(string src, string target) => MakeRelativePath(new Uri(src), target);
 
 #if UNITY_5_3_OR_NEWER
     public cfg.Tables Tables { get; set; }

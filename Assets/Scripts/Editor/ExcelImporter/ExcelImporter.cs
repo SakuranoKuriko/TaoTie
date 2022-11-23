@@ -99,6 +99,7 @@ public static class ExcelImporter
                     File.Delete(f);
             }
             else Directory.CreateDirectory(Paths.Data);
+            var pathSrc = Paths.GetAbsolutePath($"{Paths.TempDir}/placeholder");
             var p = new Process
             {
                 StartInfo = new ProcessStartInfo()
@@ -107,13 +108,13 @@ public static class ExcelImporter
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    Arguments = $"\"{new Uri(Paths.Luban).AbsolutePath}\""
-                              + $" -t \"{Paths.CustomTemplate}\""
+                    Arguments = $"\"{MakeRelativePath(pathSrc, Paths.Luban)}\""
+                              + $" -t \"{MakeRelativePath(pathSrc, Paths.CustomTemplate)}\""
                               + " -j cfg --"
-                              + $" -d \"{Paths.DefineFile}\""
-                              + $" --input_data_dir \"{Paths.DataRoot}/\""
-                              + $" --output_data_dir \"{Paths.Data}/\""
-                              + $" --output_code_dir \"{Paths.Code}/\""
+                              + $" -d \"{MakeRelativePath(pathSrc, Paths.DefineFile)}\""
+                              + $" --input_data_dir \"{MakeRelativePath(pathSrc, Paths.DataRoot)}/\""
+                              + $" --output_data_dir \"{MakeRelativePath(pathSrc, Paths.Data)}/\""
+                              + $" --output_code_dir \"{MakeRelativePath(pathSrc, Paths.Code)}/\""
                               + " --gen_types " + DataFormat switch
                               {
                                   DataFormats.Binary => "code_cs_unity_bin,data_bin",
@@ -195,7 +196,7 @@ public static class ExcelImporter
 #else
                 +"输出"
 #endif
-                +$"或手动运行 {bat.FullName} 检查");
+                +$"或手动运行 {MakeRelativePath(Paths.ProjectRoot, bat.FullName)} 检查");
             }
         }
         catch(Exception err)
