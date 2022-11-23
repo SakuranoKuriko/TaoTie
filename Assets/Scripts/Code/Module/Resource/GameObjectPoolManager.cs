@@ -1,23 +1,24 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 namespace TaoTie
 {
     /// <summary>
-    /// GameObject缓存池
-    /// 注意：
-    /// 1、所有需要预设都从这里加载，不要直接到ResourcesManager去加载，由这里统一做缓存管理
-    /// 2、缓存分为两部分：从资源层加载的原始GameObject(Asset)，从GameObject实例化出来的多个Inst
-    /// 原则: 有借有还，再借不难，借出去的东西回收时，请不要污染(pc上会进行检测，发现则报错)
-    /// 何为污染？不要往里面添加什么节点，借出来的是啥样子，返回来的就是啥样子
-    /// GameObject内存管理，采用lru cache来管理prefab
-    /// 为了对prefab和其产生的go的内存进行管理，所以严格管理go生命周期
-    /// 1、创建 -> GetGameObjectAsync
-    /// 2、回收 -> 绝大部分的时候应该采用回收(回收go不能被污染)，对象的销毁对象池会自动管理 RecycleGameObject
-    /// 3、销毁 -> 如果的确需要销毁，或一些用不到的数据想要销毁，也必须从这GameObjectPool中进行销毁，
-    ///         严禁直接调用GameObject.Destroy方法来进行销毁，而应该采用GameObjectPool.DestroyGameObject方法
-    /// 不管是销毁还是回收，都不要污染go，保证干净
+    /// <para>GameObject缓存池</para>
+    /// <para>注意：</para>
+    /// <para>1、所有需要预设都从这里加载，不要直接到ResourcesManager去加载，由这里统一做缓存管理</para>
+    /// <para>2、缓存分为两部分：从资源层加载的原始GameObject(Asset)，从GameObject实例化出来的多个Inst</para>
+    /// <para>原则: 有借有还，再借不难，借出去的东西回收时，请不要污染(pc上会进行检测，发现则报错)</para>
+    /// <para>何为污染？不要往里面添加什么节点，借出来的是啥样子，返回来的就是啥样子</para>
+    /// <para>GameObject内存管理，采用lru cache来管理prefab</para>
+    /// <para>为了对prefab和其产生的go的内存进行管理，所以严格管理go生命周期</para>
+    /// <para>1、创建 -> GetGameObjectAsync</para>
+    /// <para>2、回收 -> 绝大部分的时候应该采用回收(回收go不能被污染)，对象的销毁对象池会自动管理 RecycleGameObject</para>
+    /// <para>3、销毁 -> 如果的确需要销毁，或一些用不到的数据想要销毁，也必须从这GameObjectPool中进行销毁，
+    ///         严禁直接调用GameObject.Destroy方法来进行销毁，而应该采用GameObjectPool.DestroyGameObject方法</para>
+    /// <para>不管是销毁还是回收，都不要污染go，保证干净</para>
     /// </summary>
     public class GameObjectPoolManager:IManager
     {
@@ -77,41 +78,9 @@ namespace TaoTie
         }
         
         #endregion
-        
-     //    /// <summary>
-	    // /// 从池子获取UI组件
-	    // /// </summary>
-	    // /// <param name="this"></param>
-	    // /// <param name="path"></param>
-	    // /// <typeparam name="T"></typeparam>
-	    // /// <returns></returns>
-     //    public async ETTask<T> GetUIGameObjectAsync<T>( string path) where T : Entity,IAwake,IOnCreate
-     //    {
-     //        var obj = await this.GetGameObjectAsync(path);
-     //        if (obj == null) return null;
-     //        T res = this.AddChild<T>();
-     //        res.AddUIComponent<UITransform,Transform>("", obj.transform);
-     //        UIWatcherComponent.Instance.OnCreate(res);
-     //        return res;
-     //    }
-     //
-	    // /// <summary>
-	    // /// 池子回收UI组件
-	    // /// </summary>
-	    // /// <param name="this"></param>
-	    // /// <param name="obj"></param>
-	    // /// <param name="isClear"></param>
-	    // /// <typeparam name="T"></typeparam>
-     //    public void RecycleUIGameObject<T>( T obj,bool isClear = false) where T : Entity,IAwake,IOnCreate
-     //    {
-     //        var uiTrans = obj.GetUIComponent<UITransform>();
-     //        this.RecycleGameObject(uiTrans.transform.gameObject, isClear);
-     //        obj.BeforeOnDestroy();
-     //        UIWatcherComponent.Instance.OnDestroy(obj);
-     //    }
 
 
-		/// <summary>
+        /// <summary>
 		/// 预加载一系列资源
 		/// </summary>
 		/// <param name="this"></param>
@@ -131,7 +100,6 @@ namespace TaoTie
 		/// <summary>
 		/// 尝试从缓存中获取
 		/// </summary>
-		/// <param name="this"></param>
 		/// <param name="path"></param>
 		/// <param name="go"></param>
 		/// <returns></returns>
@@ -171,7 +139,6 @@ namespace TaoTie
 		/// <summary>
 		/// 预加载：可提供初始实例化个数
 		/// </summary>
-		/// <param name="this"></param>
 		/// <param name="path"></param>
 		/// <param name="inst_count">初始实例化个数</param>
 		/// <param name="callback"></param>
@@ -203,7 +170,6 @@ namespace TaoTie
 		/// <summary>
 		/// 异步获取：必要时加载
 		/// </summary>
-		/// <param name="this"></param>
 		/// <param name="path"></param>
 		/// <param name="callback"></param>
 		/// <returns></returns>
@@ -221,7 +187,6 @@ namespace TaoTie
 		/// <summary>
 		/// 异步获取：必要时加载
 		/// </summary>
-		/// <param name="this"></param>
 		/// <param name="path"></param>
 		/// <param name="callback"></param>
 		/// <returns></returns>
@@ -245,9 +210,8 @@ namespace TaoTie
 		}
 
 		/// <summary>
-		/// 同步取已加载的，没加加载过则返回null
+		/// 同步取已加载的，没加载过则返回null
 		/// </summary>
-		/// <param name="this"></param>
 		/// <param name="path"></param>
 		/// <returns></returns>
 		public GameObject GetGameObject(string path)
@@ -262,7 +226,6 @@ namespace TaoTie
 		/// <summary>
 		/// 回收
 		/// </summary>
-		/// <param name="this"></param>
 		/// <param name="inst"></param>
 		/// <param name="isclear"></param>
 		public void RecycleGameObject(GameObject inst, bool isclear = false)
@@ -291,8 +254,12 @@ namespace TaoTie
 
 			//this.CheckCleanRes(path);
 		}
-		//检测回收的时候是否需要清理资源(这里是检测是否清空 inst和缓存的go)
-		//这里可以考虑加一个配置表来处理优先级问题，一些优先级较高的保留
+
+		/// <summary>
+		/// <para>检测回收的时候是否需要清理资源(这里是检测是否清空 inst和缓存的go)</para>
+		/// <para>这里可以考虑加一个配置表来处理优先级问题，一些优先级较高的保留</para>
+		/// </summary>
+		/// <param name="path"></param>
 		public void CheckCleanRes(string path)
 		{
 			var cnt = this.__goInstCountCache[path] - (this.__instCache.ContainsKey(path) ? this.__instCache[path].Count : 0);
@@ -300,14 +267,21 @@ namespace TaoTie
 				this.__ReleaseAsset(path);
 		}
 
-		//添加需要持久化的资源
+		/// <summary>
+		/// <para>添加需要持久化的资源</para>
+		/// </summary>
+		/// <param name="path"></param>
 		public void AddPersistentPrefabPath(string path)
 		{
 			this.__persistentPathCache[path] = true;
 
 		}
-
-		//清理缓存
+		
+		/// <summary>
+		/// <para>清理缓存</para>
+		/// </summary>
+		/// <param name="includePooledGo">是否需要将预设也释放</param>
+		/// <param name="excludePathArray">忽略的</param>
 		public void Cleanup(bool includePooledGo = true, List<string> excludePathArray = null)
 		{
 			Log.Info("GameObjectPool Cleanup ");
@@ -354,11 +328,14 @@ namespace TaoTie
 			}
 			Log.Info("GameObjectPool Cleanup Over");
 		}
-		//--释放asset
-		//--注意这里需要保证外面没有引用这些path的inst了，不然会出现材质丢失的问题
-		//--不要轻易调用，除非你对内部的资源的生命周期有了清晰的了解
-		//--@param includePooledGo: 是否需要将预设也释放
-		//--@param patharray： 需要释放的资源路径数组
+
+		/// <summary>
+		/// <para>释放asset</para>
+		/// <para>注意这里需要保证外面没有引用这些path的inst了，不然会出现材质丢失的问题</para>
+		/// <para>不要轻易调用，除非你对内部的资源的生命周期有了清晰的了解</para>
+		/// </summary>
+		/// <param name="includePooledGo">是否需要将预设也释放</param>
+		/// <param name="patharray">需要释放的资源路径数组</param>
 		public void CleanupWithPathArray(bool includePooledGo = true, List<string> patharray = null)
 		{
 			Debug.Log("GameObjectPool Cleanup ");
@@ -410,6 +387,11 @@ namespace TaoTie
 			}
 		}
 		
+		/// <summary>
+		/// 获取已经缓存的预制
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
 		public GameObject GetCachedGoWithPath(string path)
 		{
 			if (this.__goPool.TryOnlyGet(path, out var res))
@@ -422,7 +404,10 @@ namespace TaoTie
 				
 		#region 私有方法
 		        
-		// 初始化inst
+		/// <summary>
+		/// 初始化inst
+		/// </summary>
+		/// <param name="inst"></param>
 		void InitInst(GameObject inst)
 		{
 			if (inst != null)
@@ -430,7 +415,11 @@ namespace TaoTie
 				inst.SetActive(true);
 			}
 		}
-		// 检测是否已经被缓存
+		/// <summary>
+		/// 检测是否已经被缓存
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
 		bool CheckHasCached(string path)
 		{
 			if (string.IsNullOrEmpty(path))
@@ -451,7 +440,12 @@ namespace TaoTie
 			return this.__goPool.ContainsKey(path);
 		}
 
-		//缓存并实例化GameObject
+		/// <summary>
+		/// 缓存并实例化GameObject
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="req"></param>
+		/// <param name="inst_count"></param>
 		void CacheAndInstGameObject(string path, GameObject go, int inst_count)
 		{
 			this.__goPool.Set(path, go);
@@ -474,7 +468,10 @@ namespace TaoTie
 				this.__goInstCountCache[path] = this.__goInstCountCache[path] + inst_count;
 			}
 		}
-		//删除gameobject 所有从GameObjectPool中
+		/// <summary>
+		/// 删除gameobject 所有从GameObjectPool中
+		/// </summary>
+		/// <param name="inst"></param>
 		void DestroyGameObject(GameObject inst)
 		{
 			if (this.__instPathCache.TryGetValue(inst, out string path))
@@ -500,7 +497,12 @@ namespace TaoTie
 				Log.Error("DestroyGameObject inst not found from __instPathCache");
 			}
 		}
-		
+		/// <summary>
+		/// 检查回收时是否污染
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="inst"></param>
+		/// <param name="callback"></param>
 		void __CheckRecycleInstIsDirty(string path, GameObject inst, Action callback)
 		{
 			if (!this.__IsOpenCheck())
@@ -512,8 +514,13 @@ namespace TaoTie
 			this.__CheckAfter(path, inst).Coroutine();
 			callback?.Invoke();
 		}
-
-		async ETTask __CheckAfter(string path, GameObject inst)
+	    /// <summary>
+	    /// 延迟一段时间检查
+	    /// </summary>
+	    /// <param name="path"></param>
+	    /// <param name="inst"></param>
+	    /// <returns></returns>
+	    async ETTask __CheckAfter(string path, GameObject inst)
 		{
 			await TimerManager.Instance.WaitAsync(2000);
 			if (inst != null && inst.transform != null && this.__CheckInstIsInPool(path, inst))
@@ -539,7 +546,12 @@ namespace TaoTie
 				}
 			}
 		}
-
+		/// <summary>
+		/// 检查inst是否在池子中
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="inst"></param>
+		/// <returns></returns>
 		bool __CheckInstIsInPool(string path, GameObject inst)
 		{
 			if (this.__instCache.TryGetValue(path, out var inst_array))
@@ -551,6 +563,11 @@ namespace TaoTie
 			}
 			return false;
 		}
+		/// <summary>
+		/// 获取GameObject的child数量
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="go"></param>
 		void __InitGoChildCount(string path, GameObject go)
 		{
 			if (!this.__IsOpenCheck()) return;
@@ -563,7 +580,10 @@ namespace TaoTie
 			}
 		}
 
-		// 释放资源
+		/// <summary>
+		/// 释放资源
+		/// </summary>
+		/// <param name="path"></param>
 		public void __ReleaseAsset(string path)
 		{
 			if (this.__instCache.ContainsKey(path))
@@ -583,11 +603,22 @@ namespace TaoTie
 				this.__goPool.Remove(path);
 			}
 		}
+		/// <summary>
+		/// 是否开启检查污染
+		/// </summary>
+		/// <returns></returns>
 		bool __IsOpenCheck()
 		{
 			return Define.Debug;
 		}
 
+		/// <summary>
+		/// 递归取子节点数量
+		/// </summary>
+		/// <param name="trans"></param>
+		/// <param name="path"></param>
+		/// <param name="record"></param>
+		/// <returns></returns>
 		int RecursiveGetChildCount(Transform trans, string path, ref Dictionary<string, int> record)
 		{
 			int total_child_count = trans.childCount;
