@@ -47,141 +47,166 @@ public static class ExcelImporter
 #if UNITY_EDITOR
     [MenuItem("Tools/Re-import all Excel")]
 #endif
-    public static async void Import()
+    public static async void Import() => await ImportInternal();
+    public static async Task ImportInternal()
     {
-        const string logid = "Excel Importer";
-        Debug.Log($"{logid}: 导入中...");
+        const string logid = nameof(ExcelImporter);
+        try
+        {
+            Debug.Log($"{logid}: 导入中...");
 
-        foreach (var f in GenerateFiles)
-        {
-            if (Directory.Exists(f))
-                Directory.Delete(f);
-        }
-        foreach (var d in GenerateDirs.Concat(GenerateFiles.Select(f => Path.GetDirectoryName(f))).Distinct())
-        {
-            if (!Directory.Exists(d))
+            foreach (var f in GenerateFiles)
             {
-                if (File.Exists(d))
-                    File.Delete(d);
-                Directory.CreateDirectory(d);
+                if (Directory.Exists(f))
+                    Directory.Delete(f);
             }
-        }
-
-        var files = new List<(string Type, string Path)>();
-        files.AddRange(Directory.GetFiles(Paths.Tables, FileFilter, SearchOption.AllDirectories).Select(x => ("table", x)));
-        files.AddRange(Directory.GetFiles(Paths.Enums, FileFilter, SearchOption.AllDirectories).Select(x => ("enum", x)));
-        files.AddRange(Directory.GetFiles(Paths.Beans, FileFilter, SearchOption.AllDirectories).Select(x => ("bean", x)));
-        using (var xml = File.Create(Paths.DefineFile))
-        {
-            using var xmlw = new StreamWriter(xml, Encoding.UTF8);
-            xmlw.Write("<root>\r\n");
-            xmlw.Write($"    <topmodule name=\"{nameof(cfg)}\"/>\r\n");
-            xmlw.Write("    <group name=\"c\" default=\"1\"/>\r\n");
-            foreach (var x in files)
-                xmlw.Write($"    <importexcel name=\"{MakeRelativePath(DataRootUri, x.Path)}\" type=\"{x.Type}\"/>\r\n");
-            xmlw.Write($"    <service name=\"all\" manager=\"{nameof(cfg.Tables)}\" group=\"c\"/>\r\n");
-            xmlw.Write("</root>\r\n");
-            xmlw.Flush();
-        }
-
-        if (Directory.Exists(Paths.Code))
-        {
-            foreach (var f in Directory.GetFiles(Paths.Code, "*.*", SearchOption.AllDirectories))
-                File.Delete(f);
-        }
-        else Directory.CreateDirectory(Paths.Code);
-        if (Directory.Exists(Paths.Data))
-        {
-            foreach (var f in Directory.GetFiles(Paths.Data, "*", SearchOption.AllDirectories))
-                File.Delete(f);
-        }
-        else Directory.CreateDirectory(Paths.Data);
-        var p = new Process
-        {
-            StartInfo = new ProcessStartInfo()
+            foreach (var d in GenerateDirs.Concat(GenerateFiles.Select(f => Path.GetDirectoryName(f))).Distinct())
             {
-                FileName = "dotnet",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = $"\"{new Uri(Paths.Luban).AbsolutePath}\""
-                          + $" -t \"{Paths.CustomTemplate}\""
-                          + " -j cfg --"
-                          + $" -d \"{Paths.DefineFile}\""
-                          + $" --input_data_dir \"{Paths.DataRoot}/\""
-                          + $" --output_data_dir \"{Paths.Data}/\""
-                          + $" --output_code_dir \"{Paths.Code}/\""
-                          + " --gen_types " + DataFormat switch
-                          {
-                              DataFormats.Binary => "code_cs_unity_bin,data_bin",
-                              _ => "code_cs_unity_json,data_json",
-                          }
-                          + " -s all",
-                WorkingDirectory = Paths.TempDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
+                if (!Directory.Exists(d))
+                {
+                    if (File.Exists(d))
+                        File.Delete(d);
+                    Directory.CreateDirectory(d);
+                }
             }
-        };
+
+            var files = new List<(string Type, string Path)>();
+            files.AddRange(Directory.GetFiles(Paths.Tables, FileFilter, SearchOption.AllDirectories).Select(x => ("table", x)));
+            files.AddRange(Directory.GetFiles(Paths.Enums, FileFilter, SearchOption.AllDirectories).Select(x => ("enum", x)));
+            files.AddRange(Directory.GetFiles(Paths.Beans, FileFilter, SearchOption.AllDirectories).Select(x => ("bean", x)));
+            using (var xml = File.Create(Paths.DefineFile))
+            {
+                using var xmlw = new StreamWriter(xml, Encoding.UTF8);
+                xmlw.Write("<root>\r\n");
+                xmlw.Write($"    <topmodule name=\"{nameof(cfg)}\"/>\r\n");
+                xmlw.Write("    <group name=\"c\" default=\"1\"/>\r\n");
+                foreach (var x in files)
+                    xmlw.Write($"    <importexcel name=\"{MakeRelativePath(DataRootUri, x.Path)}\" type=\"{x.Type}\"/>\r\n");
+                xmlw.Write($"    <service name=\"all\" manager=\"{nameof(cfg.Tables)}\" group=\"c\"/>\r\n");
+                xmlw.Write("</root>\r\n");
+                xmlw.Flush();
+            }
+
+            if (Directory.Exists(Paths.Code))
+            {
+                foreach (var f in Directory.GetFiles(Paths.Code, "*.*", SearchOption.AllDirectories))
+                    File.Delete(f);
+            }
+            else Directory.CreateDirectory(Paths.Code);
+            if (Directory.Exists(Paths.Data))
+            {
+                foreach (var f in Directory.GetFiles(Paths.Data, "*", SearchOption.AllDirectories))
+                    File.Delete(f);
+            }
+            else Directory.CreateDirectory(Paths.Data);
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo()
+                {
+                    FileName = "dotnet",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Arguments = $"\"{new Uri(Paths.Luban).AbsolutePath}\""
+                              + $" -t \"{Paths.CustomTemplate}\""
+                              + " -j cfg --"
+                              + $" -d \"{Paths.DefineFile}\""
+                              + $" --input_data_dir \"{Paths.DataRoot}/\""
+                              + $" --output_data_dir \"{Paths.Data}/\""
+                              + $" --output_code_dir \"{Paths.Code}/\""
+                              + " --gen_types " + DataFormat switch
+                              {
+                                  DataFormats.Binary => "code_cs_unity_bin,data_bin",
+                                  _ => "code_cs_unity_json,data_json",
+                              }
+                              + " -s all",
+                    WorkingDirectory = Paths.TempDir,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                }
+            };
 #if !UNITY_EDITOR || DEBUG
-        var bat = new FileInfo(Paths.GenerateBatFile);
-        if (bat.Exists)
-            bat.Delete();
-        using (var bats = bat.Create())
-        {
-            using var batw = new StreamWriter(bats, Encoding.Default);
-            batw.Write($"{p.StartInfo.FileName} {p.StartInfo.Arguments}");
-        }
+            var bat = new FileInfo(Paths.GenerateBatFile);
+            if (bat.Exists)
+                bat.Delete();
+            using (var bats = bat.Create())
+            {
+                using var batw = new StreamWriter(bats, Encoding.Default);
+                await batw.WriteLineAsync($"{p.StartInfo.FileName} {p.StartInfo.Arguments}");
+                await batw.WriteLineAsync("pause");
+            }
 #endif
-        var logpath = new Uri(Paths.ImportLog).AbsolutePath;
-        if (File.Exists(logpath))
-            File.Delete(logpath);
-        var hasWarning = false;
-        using (var log = File.Create(logpath))
-        {
-            using var logw = new StreamWriter(log, Encoding.UTF8);
-            void WriteLog(object sender, DataReceivedEventArgs args)
+            var logpath = new Uri(Paths.ImportLog).AbsolutePath;
+            if (File.Exists(logpath))
+                File.Delete(logpath);
+            var hasWarning = false;
             {
-                logw.Write(args.Data);
-                logw.Flush();
+#if UNITY_EDITOR
+                using var log = File.Create(logpath);
+                using var logw = new StreamWriter(log, Encoding.UTF8);
+#endif
+                async Task WriteLogAsync(string msg)
+                {
+#if UNITY_EDITOR
+                    await logw.WriteLineAsync(msg);
+#else
+                    await Task.CompletedTask;
+                    Console.WriteLine(msg);
+#endif
+                }
+                if (!p.Start())
+                {
+                    Debug.LogError($"{logid}: 导入失败：运行Luban失败");
+                    return;
+                }
+                async Task DumpLogs()
+                {
+                    while (!p.StandardOutput.EndOfStream)
+                    {
+                        var msg = await p.StandardOutput.ReadLineAsync();
+                        if (!hasWarning)
+                            hasWarning = HasWarning(msg);
+                        await WriteLogAsync(msg);
+                    }
+                    while (!p.StandardError.EndOfStream)
+                    {
+                        var msg = await p.StandardError.ReadLineAsync();
+                        if (!hasWarning)
+                            hasWarning = HasWarning(msg);
+                        await WriteLogAsync(msg);
+                    }
+                }
+                while (!p.HasExited)
+                    await DumpLogs();
+                await DumpLogs();
             }
-            p.OutputDataReceived += WriteLog;
-            p.ErrorDataReceived += WriteLog;
-            if (!p.Start())
+            if (p.ExitCode == 0)
             {
-                Debug.LogError($"{logid}: 导入失败：运行Luban失败");
-                return;
+                if (hasWarning)
+                    Debug.Log($"{logid}: 导入成功，但检测到有警告，请检查日志输出文件: {logpath}");
+                else
+                    Debug.Log($"{logid}: 导入成功");
             }
-            p.WaitForExit();
-            while (!p.StandardOutput.EndOfStream)
-            {
-                var msg = await p.StandardOutput.ReadLineAsync();
-                if (!hasWarning)
-                    hasWarning = HasWarning(msg);
-                await logw.WriteLineAsync(msg);
-            }
-            while (!p.StandardError.EndOfStream)
-            {
-                var msg = await p.StandardError.ReadLineAsync();
-                if (!hasWarning)
-                    hasWarning = HasWarning(msg);
-                await logw.WriteLineAsync(msg);
-            }
-        }
-        if (p.ExitCode == 0)
-        {
-            if (hasWarning)
-                Debug.Log($"{logid}: 导入成功，但检测到有警告，请检查日志输出文件: {logpath}");
             else
-                Debug.Log($"{logid}: 导入成功");
+            {
+                Debug.LogError($"{logid}: 导入失败，请检查日志"
+#if UNITY_EDITOR
+                +$"输出文件: {logpath}{Environment.NewLine}"
+#else
+                +"输出"
+#endif
+                +$"或手动运行 {bat.FullName} 检查");
+            }
         }
-        else
+        catch(Exception err)
         {
-            Debug.LogError($"{logid}: 导入失败，请检查日志输出文件: {logpath}{Environment.NewLine}或手动运行 {bat.FullName} 检查");
+            Debug.LogError(err.Message);
+            Debug.LogError(err.StackTrace);
+            Debug.LogError($"{logid}: 导入失败");
         }
-
     }
 }
 
 #if !UNITY_EDITOR
-ExcelImporter.Import();
+await ExcelImporter.ImportInternal();
 #endif
